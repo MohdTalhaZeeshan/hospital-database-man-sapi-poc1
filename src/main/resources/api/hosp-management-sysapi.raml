@@ -1,0 +1,183 @@
+#%RAML 1.0
+title: hosp-management-sysapi
+
+types:
+  patients : !include exchange_modules/9148ec89-4f01-4636-83cf-50043c8a4b39/patient/1.0.3/patient.raml
+  doctors : !include exchange_modules/9148ec89-4f01-4636-83cf-50043c8a4b39/doctor/1.0.1/doctor.raml
+
+
+/allpatients:
+  get:
+    description: Fetch all patient records and insert them into a CSV file
+    responses:
+      200:
+        description: Successful response with patient records
+        body:
+          application/json:
+            type: patients[]
+            example: !include Examples/exampleFile.json
+  post:
+    description: Insert a new patient record (validation check before insert)
+    body:
+      application/json:
+        type: patients
+        example: !include Examples/example2.json       
+    responses:
+      201:
+        description: Patient record successfully inserted
+        body:
+          application/json:
+            example: {
+              "Message" : "Record Inserted Successfully"
+            }
+            
+
+/ps/{id}:
+  get:
+    description: Fetch a patient record by ID
+    responses:
+      200:
+        body:
+          application/json:
+            type: patients
+            example: !include Examples/example2.json 
+  put:
+    description: Update a patient record by ID
+    body:
+      application/json:
+        type: patients
+        example: !include Examples/example2.json
+    responses:
+      200:
+        description: Patient record updated 
+        body:
+          application/json:
+            example: {
+              "Message" : "Record Updated Successfully"
+            }
+
+  delete:
+    description: Delete a patient record by ID
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+                "message": "Record deleted successfully"
+              }
+      404:
+        body:
+          application/json:
+            example: |
+              {
+                "message": "Record not found"
+              }
+
+/ps/ss/{status}:
+  get:
+    description: Fetch patient records by status (Visited/NotVisited)
+    responses:
+      200:
+        body:
+          application/json:
+            type: patients
+            example: !include Examples/example2.json
+
+/ds:
+   get:
+    description: Fetch all doctor records
+    responses:
+      200:
+        body:
+          application/json:
+            type: doctors[]
+            example: !include Examples/doctorArray.json
+              
+   post:
+    description: Insert a new doctor record (validation check before insert)
+    body:
+      application/json:
+        type: doctors
+        example: !include Examples/docObject.json
+          
+    responses:
+      201:
+        description: Doctor record successfully inserted
+        body:
+          application/json:
+            example:
+              {
+                "Message" : "Record Inserted Successfully"
+              }
+                                                                                            
+/d1/{id}:
+  get:
+    description: Fetch a doctor record by StaffID
+    responses:
+      200:
+        body:
+          application/json:
+            type: doctors
+            example: !include Examples/docObject.json
+             
+  
+  delete:
+    description: Delete a doctor record by StaffID
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              {
+                "message": "Record deleted successfully"
+              }
+      404:
+        body:
+          application/json:
+            example:
+              {
+                "message": "Record not found"
+              }
+
+/d1/sp/{specialty}:
+  get:
+    description: Fetch doctor records by specialty
+    responses:
+      200:
+        body:
+          application/json:
+            type: doctors[]        
+            example: !include Examples/doctorArray.json
+
+/updoc:
+  put:
+    description: Update a doctor record by StaffID
+    body:
+      application/json:
+        type: doctors
+        example: !include Examples/docObject.json 
+          
+    responses:
+      200:
+        description: Doctor record updated
+        body:
+          application/json:
+            example : {
+              "Message" : "Record Updated Success fully"
+            }
+          
+
+
+          
+              
+
+
+  
+
+          
+              
+
+              
+            
+

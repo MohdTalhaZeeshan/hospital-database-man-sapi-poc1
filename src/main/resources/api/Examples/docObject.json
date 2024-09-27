@@ -1,0 +1,11 @@
+{
+  "Name": "Dr. Rajesh Mehta",
+  "StaffID": 1023,
+  "Gender": "Male",
+  "EmailID": "rajesh.mehta@example.com",
+  "Specialty": "Orthopedics",
+  "AcceptingCases": true,
+  "Surgeon": true,
+  "OfficeHours": "10:00 AM - 6:00 PM",
+  "Timestamp": "2024-09-17T11:45:00Z"
+}

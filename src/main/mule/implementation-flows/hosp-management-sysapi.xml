@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+   
+    
+	<flow name="hosp-management-sysapi-main">
+        <http:listener config-ref="hosp-management-sysapi-httpListenerConfig" path="${http.lispath}">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+		<set-variable value="#[attributes.headers.correlationid]" doc:name="Set Variable" doc:id="ce00ec9f-74e6-4619-82e0-abe8c0f910f4" variableName="correlationid"/>
+		<apikit:router config-ref="hosp-management-sysapi-config" />
+        <error-handler ref="Global-Error-Handler">
+            
+        </error-handler>
+    </flow>
+    <flow name="hosp-management-sysapi-console">
+        <http:listener config-ref="hosp-management-sysapi-httpListenerConfig" path="${http.console}">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="hosp-management-sysapi-config" />
+		<error-handler ref="Global-Error-Handler" />
+    </flow>
+    <flow name="put:\ps\(id):application\json:hosp-management-sysapi-config">
+    
+		<logger level="INFO" doc:name="Start Logger" doc:id="8b8d18f7-f5bb-4b57-b388-45ede95365fc" message='#["Update  Patient record by ID flow started :: " ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Update-Patient-Record-by-ID flow." doc:id="acda738f-44d2-428d-9a0c-8f42066d4c6f" name="Update-Patient-Record-by-ID"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="943166a2-227a-4716-8d1a-490345738d77" message='#["Update Patient record by ID flow ended ::" ++ vars.correlationid]'/>
+		<error-handler ref="Global-Error-Handler" />
+    </flow>
+    <flow name="put:\updoc:application\json:hosp-management-sysapi-config">
+    	<logger level="INFO" doc:name="Start Logger" doc:id="f6a21665-5864-4b57-bfd1-cfe257a79132" message='#["Update Doctor record flow started ::" ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Update-Doctor-Record flow." doc:id="84c8c68f-b29e-4a25-8a7a-b436fdf8f789" name="Update-Doctor-Record"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="4421c6ae-9186-46fc-84b3-e1c47c39a06b" message='#["Update Doctor record flow ended ::" ++ vars.correlationid]'/>
+    </flow>
+    <flow name="delete:\d1\(id):hosp-management-sysapi-config">
+		<logger level="INFO" doc:name="Start Logger" doc:id="005847a9-d89b-45fa-9fc0-0bc9b6ea364e" message='#["Delete Doctor record by StaffID flow started ::" ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Delete-Doctor-Record-by-StaffID flow." doc:id="0e461cdf-ca48-4327-ae4a-e521714dfe60" name="Delete-Doctor-Record-by-StaffID"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="7d10f27e-7899-4ba4-864c-a7706c51122a" message='#["Delete Doctor record by ID flow ended ::" ++ vars.correlationid]'/>
+    </flow>
+    <flow name="delete:\ps\(id):hosp-management-sysapi-config">
+		<logger level="INFO" doc:name="Start Logger" doc:id="53d7d7e4-3ab1-4913-8f73-01092a9cd0b4" message='#["Delete patient record by ID flow started in system layer ::" ++ attributes.headers.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Delete-Patient-Record-By-ID flow." doc:id="e5ef95f1-9e0b-448c-a348-4ca115450786" name="Delete-Patient-Record-By-ID"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="b314c477-2de2-43ab-9ad4-166914413d62" message='#["Delete patient record by ID flow ended in system layer ::" ++ vars.cid]'/>
+    </flow>
+    <flow name="get:\allpatients:hosp-management-sysapi-config">
+		<logger level="INFO" doc:name="Start Logger" doc:id="bac7386f-beb7-4bd8-a6cf-3230e3cf7f80" message='#["Getting all patients records flow started in system layer ::" ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Get-All-Patient-Records flow." doc:id="ba389216-fb06-4af1-9d24-2750db0da487" name="Get-All-Patient-Records"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="73565d90-4a82-4f5b-8dc0-73e251a1ab57" message='#["Getting all patient records flow ended in system layer ::" ++ vars.correlationid]'/>
+    </flow>
+    <flow name="get:\d1\sp\(specialty):hosp-management-sysapi-config">
+	<logger level="INFO" doc:name="Start Logger" doc:id="5a09c864-f77c-4005-9637-98d22d80c555" message='#["Get Doctor Record By Specialty Flow started in system layer ::" ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Get-Doctor-Record-By-Specialty  flow." doc:id="36058533-c73a-46c1-bc04-ca55464ced72" name="Get-Doctor-Record-By-Specialty"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="2c8eaf90-19ad-49b5-99ad-9689b97a56a1" message='#["Get Doctor Record By Specialty Flow ended in system layer ::" ++ vars.correlationid]'/>	
+    </flow>
+    <flow name="get:\d1\(id):hosp-management-sysapi-config">
+    <logger level="INFO" doc:name="Start Logger" doc:id="af06ce56-3977-455f-8696-d8769ea16d42" message='#["Get Doctor Record By StaffID Flow started in system layer ::" ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Get-Doctor-Record-By-ID flow." doc:id="55bef6af-b545-4e19-8945-e5f74a094800" name="Get-Doctor-Record-By-ID"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="2a66d1c9-2d54-4b79-9dcd-3480dbcba4fd" message='#["Get Doctor Record By StaffID Flow ended in system layer ::" ++ vars.correlationid]'/>	
+		    </flow>
+    <flow name="get:\ds:hosp-management-sysapi-config">
+		<logger level="INFO" doc:name="Start Logger" doc:id="955da5f7-9a03-48de-a4ae-8c0f2c7f1ccb" message='#["Get All Doctor Records Flow started in system layer in system layer ::" ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Get-All-Doctor-Records flow." doc:id="de9a022c-5fdb-4838-a476-38cbb070b4bb" name="Get-All-Doctor-Records"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="c66346a2-3de1-4134-a141-783f4ae7750b" message='#["Get All Doctor Records Flow ended in system layer in system layer ::" ++ vars.correlationid]'/>	
+    </flow>
+    <flow name="get:\ps\ss\(status):hosp-management-sysapi-config">
+	<logger level="INFO" doc:name="Start Logger" doc:id="0ce495bf-3301-4b72-b861-0a5c72a5b152" message='#["Getting  patient record by status flow started in system layer ::" ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Get-Patient-Record-By-Status flow." doc:id="2295471d-a8c9-4624-b33d-6604ad999fe7" name="Get-Patient-Record-By-Status"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="eceec7d2-8443-4f83-a33b-512e3c8f6938" message='#["Getting  patient record by status flow ended in system layer ::" ++ vars.correlationid]'/>		
+    </flow>
+    <flow name="get:\ps\(id):hosp-management-sysapi-config">
+	<logger level="INFO" doc:name="Start Logger" doc:id="a31ef9a9-07c2-4cd1-af4f-a8861b973ac0" message='#["Getting  patient record by ID flow started in system layer ::" ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Get-Patient-Record-By-ID flow." doc:id="7a207910-9482-426e-965d-4e65b96b3d0b" name="Get-Patient-Record-By-ID"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="9b7d6f06-38be-4553-8cd4-1d92b1e4030b" message='#["Getting  patient record by ID flow ended in system layer ::" ++ vars.correlationid]'/>		
+    </flow>
+    <flow name="post:\allpatients:application\json:hosp-management-sysapi-config">
+  <logger level="INFO" doc:name="Start Logger" doc:id="e8717cf1-1542-4884-b9ba-5c07b5e87a9d" message='#["Validating  Patient details  Object flow started in system layer ::" ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Validate-Patient-Insert-or-Update-Accordingly flow." doc:id="1c40b8dc-69a3-4a79-bc9e-3bb11adb9d18" name="Validate-Patient-Insert-or-Update-Accordingly"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="3ad05df5-76de-4797-8301-12b7fde19c36" message='#["Validating  Patient details  Object flow ended  in system layer ::" ++ vars.correlationid]'/>		
+		<error-handler ref="Global-Error-Handler">
+			
+		</error-handler>
+		
+    </flow>
+    <flow name="post:\ds:application\json:hosp-management-sysapi-config">
+    <logger level="INFO" doc:name="Start Logger" doc:id="5590febe-d458-4925-a6a2-3fe586e531c6" message='#["Validating  Doctor details  Object flow started in system layer ::" ++ vars.correlationid]'/>
+		<flow-ref doc:name="This Flow  is Refering to Validate-Doctor-Insert-or-Update-Accordingly flow." doc:id="785afeca-fed2-427d-9d17-3e2a51203e30" name="Validate-Doctor-Insert-or-Update-Accordingly"/>
+		<logger level="INFO" doc:name="End Logger" doc:id="0879a8c4-4f12-4040-a122-8c685b301549" message='#["Validating  Doctor details  Object flow ended in system layer ::" ++ vars.correlationid]'/>	
+  
+		<error-handler ref="Global-Error-Handler">
+			
+		</error-handler>
+    </flow>
+</mule>

@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="Update-Patient-Record-by-ID" doc:id="82d113b8-f24a-42e8-a6f1-39ca44b17aeb" >
+	<logger level="INFO" doc:name="Start Logger" doc:id="1f7cc52c-56fc-4267-91c9-42fcb47025c5" message='#["Update  Patient record by ID flow started in system layer impl :: " ++ vars.correlationid]'/>
+		<ee:transform doc:name="Getting the payload and converting into json format and creating and storing the variables." doc:id="1a48a2e3-17a4-471c-b895-771e0ba21206">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="originalPayload"><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="name"><![CDATA[payload.Name]]></ee:set-variable>
+				<ee:set-variable variableName="id"><![CDATA[payload.ID]]></ee:set-variable>
+				<ee:set-variable variableName="cid" ><![CDATA[attributes.headers.correlationid]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<db:select doc:name="Retrieve patient record based on ID." doc:id="c855e8da-e80c-419c-8da6-4936f651be7b" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM PATIENT WHERE ID =:ID;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID":vars.id
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Checking wheather the payload exists with given ID and if so performing given operations." doc:id="65b488ca-475d-4de7-971c-0a097b9f805e" >
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<db:update doc:name="Updating Patient Record." doc:id="9196942e-516b-4fdf-a7df-ef6d6f789146" config-ref="Database_Config">
+					<db:sql ><![CDATA[
+UPDATE PATIENT SET Name =:Name,Gender =:Gender, BOD =:BOD, MobileNumber =:MobileNumber, Address_City =:Address_City, Address_State =:Address_State, Address_ZipCode =:Address_ZipCode, EmailID =:EmailID, Occupation =:Occupation, MaritalStatus =:MaritalStatus, EmergencyContactDetails =:EmergencyContactDetails, Status =:Status, MedicalHistory =:MedicalHistory, Timestamp =:Timestamp WHERE ID =:ID;
+]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	"Name":vars.originalPayload.Name, 
+	"Gender" :vars.originalPayload.Gender, 
+	"BOD":vars.originalPayload.BOD, 
+	"MobileNumber":vars.originalPayload.MobileNumber, 
+	"Address_City":vars.originalPayload.Address_City, 
+	"Address_State":vars.originalPayload.Address_State, 
+	"Address_ZipCode":vars.originalPayload.Address_ZipCode, 
+	"EmailID":vars.originalPayload.EmailID, 
+	"Occupation":vars.originalPayload.Occupation, 
+	"MaritalStatus":vars.originalPayload.MaritalStatus, 
+	"EmergencyContactDetails":vars.originalPayload.EmergencyContactDetails, 
+	"Status":vars.originalPayload.Status, 
+	"MedicalHistory":vars.originalPayload.MedicalHistory, 
+	"Timestamp" : now() as String {format: "yyyy-MM-dd HH:mm:ss"},
+	"ID" : vars.originalPayload.ID
+}]]]></db:input-parameters>
+				</db:update>
+				<ee:transform doc:name="Converting Payload into json." doc:id="d3e4255d-4199-43aa-a5bf-cd9b90b8d22f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raising Error if ID is invalid." doc:id="453ec4e5-2381-43ed-a18d-7c31f2860880" type="ID:INVALID" description="StaffID is not valid"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="End Logger" doc:id="57026cd7-f266-42be-873c-a6027d6c2243" message='#["Update Patient record by ID flow ended in system layer impl ::" ++ vars.correlationid]'/>
+		
+</sub-flow>
+	<sub-flow name="Update-Doctor-Record" doc:id="32fd27cf-c5ee-433c-95a9-29ca433af9dc" >
+	<logger level="INFO" doc:name="Start Logger" doc:id="18dba08b-187f-4017-8576-58ec48c164b6" message='#["Update Doctor record flow started in system layer impl ::" ++ vars.correlationid]'/>
+		<ee:transform doc:name="Getting the payload and converting into json format and creating and storing the variables." doc:id="705b1790-8a3c-41db-a7f2-bae5beb859e4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="originalPayload"><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="name"><![CDATA[payload.Name]]></ee:set-variable>
+				<ee:set-variable variableName="id"><![CDATA[payload.StaffID]]></ee:set-variable>
+				<ee:set-variable variableName="cid" ><![CDATA[attributes.headers.correlationid]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<db:select doc:name="Selecting the record based on ID." doc:id="8ad1057e-d163-4a71-8e7c-8cdbf2480526" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM DOCTOR WHERE staffID =:staffID;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"staffID":attributes.queryParams.StaffID
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Checking wheather the payload exists with given ID and if so performing given operations." doc:id="163ead01-762d-48b6-818d-da96e2e1bde8" >
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<db:update doc:name="Updating Doctor record." doc:id="27d0d3ef-f48b-4586-bd30-46eb84cac58f" config-ref="Database_Config">
+					<db:sql ><![CDATA[UPDATE DOCTOR
+SET 
+    Name = :Name,
+    Gender = :Gender,
+    EmailID = :EmailID,
+    SpecialistIN = :SpecialistIN,
+    AcceptingCases = :AcceptingCases,
+    Surgeon = :Surgeon,
+    OfficeHours = :OfficeHours,
+    Timestamp = CURRENT_TIMESTAMP
+WHERE
+    staffID = :staffID;
+]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	"Name" : vars.originalPayload.Name, 
+	"Gender":vars.originalPayload.Gender, 
+	"EmailID" : vars.originalPayload.EmailID, 
+	"SpecialistIN" : vars.originalPayload.Specialty, 
+	"AcceptingCases" : vars.originalPayload.AcceptingCases, 
+	"Surgeon" : vars.originalPayload.Surgeon, 
+	"OfficeHours" : vars.originalPayload.OfficeHours, 
+	"staffID" :vars.originalPayload.StaffID
+}]]]></db:input-parameters>
+				</db:update>
+				<ee:transform doc:name="Converting payload into json." doc:id="49eb5048-8932-49cd-b4ea-f52ab42ddfcb" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raising Error if ID is invalid." doc:id="735a13d3-6e2c-400c-82da-e2e8af79edfd" type="ID:INVALID" description="StaffID is not valid  "/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="End Logger" doc:id="f7fc449e-e2a2-4305-99d8-184c69c9e373" message='#["Update Doctor record flow ended  in system layer impl ::" ++ vars.correlationid]'/>
+	
+</sub-flow>
+	<sub-flow name="Delete-Doctor-Record-by-StaffID" doc:id="1fb49a9d-eb55-4ade-9103-8fbe088f0837" >
+	<logger level="INFO" doc:name="Start Logger" doc:id="e0c43202-cdf1-499a-b964-2ebc09fbd7bd" message='#["Delete Doctor record by StaffID flow started in system layer impl ::" ++ vars.correlationid]'/>
+		<db:delete doc:name="Deleting Doctor Record Based on ID." doc:id="bcc3597d-9527-4ac1-8c9f-f9f3a11481bb" config-ref="Database_Config">
+			<db:sql ><![CDATA[DELETE FROM DOCTOR WHERE staffID =:staffID;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"staffID": attributes.uriParams.id
+}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Converting the payload coming from Delete into json." doc:id="a250974a-4b32-4ff4-a73c-b6f6d428653b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="8c8864f1-76b4-4020-8dc7-3a1d8d7598cd" message='#["Delete Doctor record by ID flow ended in system layer impl ::" ++ vars.correlationid]'/>
+	
+</sub-flow>
+	<sub-flow name="Delete-Patient-Record-By-ID" doc:id="a40e5c4f-ac2b-4644-9e20-e06123689908" >
+	<logger level="INFO" doc:name="Start Logger" doc:id="7c65dcdc-b75f-4adc-b2b4-3938a65bd03f" message='#["Delete patient record by ID flow started in system layer impl ::" ++ vars.correlationid]'/>
+		<db:delete doc:name="Deleting Patient Record Based on ID." doc:id="c2119b06-6dd8-41f5-bb6d-7766eebce9f8" config-ref="Database_Config">
+			<db:sql ><![CDATA[DELETE FROM patient WHERE ID =:ID;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID": attributes.uriParams.id
+}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Converting the payload coming from Delete into json." doc:id="ced7cdaa-745a-4fa8-b035-32dc1c66d919" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="51999c8b-a5c5-4a59-b3ca-d16b271ab193" message='#["Delete patient record by ID flow ended in system layer impl ::" ++ vars.correlationid]'/>
+	
+</sub-flow>
+	<sub-flow name="Get-All-Patient-Records" doc:id="b864ddd9-f146-4841-bb4d-94360de8902b" >
+	<logger level="INFO" doc:name="Start Logger" doc:id="ec2b44ba-c2c0-4967-9696-279064094139" message='#["Getting all patients records flow started in system layer impl ::" ++ vars.correlationid]'/>
+		<db:select doc:name="Retrieving all patient records." doc:id="f45bb0ad-e816-40ef-a26e-66854c3d4b39" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from patient;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Converting the payload coming from Select  into csv." doc:id="2e45f1f7-d2a0-4550-8f3f-a740bafb8a60" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="579c412a-3246-48a5-90a3-0365ebf64dc4" message='#["Getting all patient records flow ended in system layer impl  ::" ++ vars.correlationid]'/>
+	
+</sub-flow>
+	<sub-flow name="Get-Doctor-Record-By-Specialty" doc:id="1c5c756b-57cd-482a-9c8c-37e5c244beea" >
+	<logger level="INFO" doc:name="Start Logger" doc:id="21c4bca9-01e3-4d34-ae8d-e8152d36232f" message='#["Get Doctor Record By Specialty Flow started in system layer impl ::" ++ vars.correlationid]'/>
+		<db:select doc:name="Retrieve doctor records based on specialty." doc:id="afffb14b-a6c5-40e0-8c8b-be31f34c9f77" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM DOCTOR WHERE SpecialistIN =:SpecialistIN;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"SpecialistIN" : attributes.uriParams.specialty
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Converting the payload coming from Select into json." doc:id="f19f482d-9858-4bec-845e-46e7c8e9d264" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="90cf5deb-6d8d-4839-b22f-48932103cc43" message='#["Get Doctor Record By Specialty Flow ended in system layer impl ::" ++ vars.correlationid]'/>
+	
+</sub-flow>
+	<sub-flow name="Get-Doctor-Record-By-ID" doc:id="9a116d57-0404-4081-9a29-a94f9f99beee" >
+	<logger level="INFO" doc:name="Start Logger" doc:id="2820ffaa-9fef-487b-b382-61168128b0af" message='#["Get Doctor Record By StaffID Flow started in system layer impl ::" ++ vars.correlationid]'/>
+		<db:select doc:name="Retrieve doctor record based on StaffID." doc:id="d99d9bd0-83bb-4da9-b263-dfb1d555267c" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM DOCTOR WHERE staffID =:staffID;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"staffID" : vars.id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Converting the payload coming from Select into json." doc:id="79804a5e-7ade-4cee-bf18-90d1ebe67592" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="55033cf8-b4da-4389-9f9e-d75f1cfd22a8" message='#["Get Doctor Record By StaffID Flow ended in system layer impl::" ++ vars.correlationid]'/>
+	
+	
+</sub-flow>
+	<sub-flow name="Get-All-Doctor-Records" doc:id="7a676ba4-2ee8-4b71-9f76-c24533c285bb" >
+	<logger level="INFO" doc:name="Start Logger" doc:id="7d47247f-fa6f-4206-bd74-41ffd2aed4f0" message='#["Get All Doctor Records Flow started in system layer impl ::" ++ vars.correlationid]'/>
+		<db:select doc:name="Retrieving all doctor records." doc:id="83e44201-0857-4ed0-98a2-1fea336256d7" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM DOCTOR;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Converting the payload coming from Select into json." doc:id="b332469a-8253-402b-82dd-0bbcf0dd4dd9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="corrid" ><![CDATA[attributes.headers.correlationid]]></ee:set-variable>
+			</ee:variables>
+		
+</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="a1e9c237-baea-41b1-81ce-8436000e0aec" message='#["Get All Doctor Records Flow ended in system layer impl :: " ++ vars.correlationid]'/>
+	
+</sub-flow>
+	<sub-flow name="Get-Patient-Record-By-Status" doc:id="eaea75ff-46a1-4e11-b63a-45ff5b1980e4" >
+	<logger level="INFO" doc:name="Start Logger" doc:id="957cf5c7-d2c1-4cfe-9bee-746c0817302f" message='#["Getting  patient record by status flow started in system layer impl   ::" ++ vars.correlationid]'/>
+		<db:select doc:name="Retrieve patient record based on status." doc:id="0c1e63a6-0b2e-41fb-8edf-33861b6d3a24" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM PATIENT WHERE Status =:Status;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"Status" : attributes.uriParams.status
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Converting the payload coming from Select into json." doc:id="b5bd7298-0e82-432c-96bf-74c054e969ec" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="99585670-8b89-4182-b964-d11b7d25d691" message='#["Getting  patient record by status flow ended in system layer impl ::" ++ vars.correlationid]'/>
+	
+</sub-flow>
+	<sub-flow name="Get-Patient-Record-By-ID" doc:id="86ecbeac-5892-4cd5-b534-f2aab12bad65" ><logger level="INFO" doc:name="Start Logger" doc:id="899e939d-9b02-4800-9008-43940caa63ab" message='#["Getting  patient record by ID flow started in system layer impl ::" ++ vars.correlationid]'/>
+		<db:select doc:name="Retrieve patient record based on ID." doc:id="25a26241-f18d-4e1a-90ae-035cd74933ee" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from patient where ID =:ID;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID": attributes.uriParams.id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Converting the payload coming from Select into json." doc:id="54b51658-f369-4e96-a40f-b4f7c9d04b29" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="d43dd889-07ca-477c-9480-f7c2a79c5db6" message='#["Getting  patient record by ID flow ended in system layer impl ::" ++ vars.correlationid]'/>
+	</sub-flow>
+	<sub-flow name="Validate-Patient-Insert-or-Update-Accordingly" doc:id="57ac6ea2-b53c-482a-8013-5468a18ee2ae" >
+	  <logger level="INFO" doc:name="Start Logger" doc:id="fcbbca69-4100-4f44-956e-80e9fd372983" message='#["Validating  Patient details  Object flow started in system layer impl ::" ++ vars.correlationid]'/>
+		<ee:transform doc:name="Creating variables and storing the ID,Name and payload." doc:id="f1b1bf75-e857-4b34-a2e0-0aa0de82d91c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="originalPayload"><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="id"><![CDATA[payload.ID]]></ee:set-variable>
+				<ee:set-variable variableName="name"><![CDATA[payload.Name]]></ee:set-variable>
+				<ee:set-variable variableName="cid" ><![CDATA[attributes.headers.correlationid]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<db:select doc:name="Retrieving Patient Record based on  Patient-ID and Patient-Name." doc:id="f3209891-2c13-4f50-90e8-14cbd85175c6" config-ref="Database_Config">
+			<db:sql><![CDATA[SELECT * FROM PATIENT WHERE ID = :ID AND Name = :Name;]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+     "ID" : vars.id,
+     "Name" : vars.name
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Checking wheather the payload exists with given ID and if so performing given operations." doc:id="1a2eece8-4294-4e5b-9136-14ccd3a55389">
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<db:update doc:name="Updating Patient Details." doc:id="92150765-6fd6-4a24-959b-e0d78585080a" config-ref="Database_Config">
+					<db:sql><![CDATA[UPDATE PATIENT SET Name =:Name,Gender =:Gender, BOD =:BOD, MobileNumber =:MobileNumber, Address_City =:Address_City, Address_State =:Address_State, Address_ZipCode =:Address_ZipCode, EmailID =:EmailID, Occupation =:Occupation, MaritalStatus =:MaritalStatus, EmergencyContactDetails =:EmergencyContactDetails, Status =:Status, MedicalHistory =:MedicalHistory, Timestamp =:Timestamp WHERE ID =:ID;]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+	"Name":vars.originalPayload.Name, 
+	"Gender" :vars.originalPayload.Gender, 
+	"BOD":vars.originalPayload.BOD, 
+	"MobileNumber":vars.originalPayload.MobileNumber, 
+	"Address_City":vars.originalPayload.Address_City, 
+	"Address_State":vars.originalPayload.Address_State, 
+	"Address_ZipCode":vars.originalPayload.Address_ZipCode, 
+	"EmailID":vars.originalPayload.EmailID, 
+	"Occupation":vars.originalPayload.Occupation, 
+	"MaritalStatus":vars.originalPayload.MaritalStatus, 
+	"EmergencyContactDetails":vars.originalPayload.EmergencyContactDetails, 
+	"Status":vars.originalPayload.Status, 
+	"MedicalHistory":vars.originalPayload.MedicalHistory, 
+	"Timestamp" : now() as String {format: "yyyy-MM-dd HH:mm:ss"},
+	"ID" : vars.originalPayload.ID
+}]]]></db:input-parameters>
+				</db:update>
+				<ee:transform doc:name="Mapping and converting into CSV format." doc:id="7a17cf94-cf55-4985-843f-504cd037a331">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+{
+	
+  "Name": vars.originalPayload.Name,
+  "ID": vars.originalPayload.ID,
+  "Gender": vars.originalPayload.Gender,
+  "BOD": vars.originalPayload.BOD,
+  "MobileNumber": vars.originalPayload.MobileNumber,
+  "Address_City": vars.originalPayload.Address_City,
+  "Address_State": vars.originalPayload.Address_State,
+  "Address_ZipCode": vars.originalPayload.Address_ZipCode,
+  "EmailID": vars.originalPayload.EmailID,
+  "Occupation": vars.originalPayload.Occupation,
+  "MaritalStatus": vars.originalPayload.MaritalStatus,
+  "EmergencyContactDetails": vars.originalPayload.EmergencyContactDetails,
+  "Status": vars.originalPayload.Status,
+  "MedicalHistory": vars.originalPayload.MedicalHistory,
+  "Timestamp":  now() as String {format: "yyyy-MM-dd HH:mm:ss"}
+
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<file:write doc:name="Writing Updated Patient Details in CSV File." doc:id="1f831ed4-a2af-4a62-b53a-af846366bb5e" config-ref="File_Config" path="${file.patupdate}" mode="APPEND" />
+				<ee:transform doc:name="Printing a message as Record updated successfully." doc:id="867f9071-84e1-4f27-9ea6-1ef7f08ca15b">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : "Record Updated Successfully"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<db:insert doc:name="Inserting New Records into Database." doc:id="a35f6e8d-aecf-4bae-a060-f576e1b8fd6d" config-ref="Database_Config">
+					<db:sql><![CDATA[INSERT INTO PATIENT
+(Name, ID, Gender, BOD, MobileNumber, Address_City, Address_State, Address_ZipCode, EmailID, Occupation, MaritalStatus, EmergencyContactDetails, Status, MedicalHistory, Timestamp)
+VALUES 
+(:name, :id, :gender, :bod, :mobileNumber, :addressCity, :addressState, :addressZipCode, :emailID, :occupation, :maritalStatus, :emergencyContactDetails, :status, :medicalHistory, :timestamp);
+]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+	
+  "name": vars.originalPayload.Name,
+  "id": vars.originalPayload.ID,
+  "gender": vars.originalPayload.Gender,
+  "bod": vars.originalPayload.BOD,
+  "mobileNumber": vars.originalPayload.MobileNumber,
+  "addressCity": vars.originalPayload.Address_City,
+  "addressState": vars.originalPayload.Address_State,
+  "addressZipCode": vars.originalPayload.Address_ZipCode,
+  "emailID": vars.originalPayload.EmailID,
+  "occupation": vars.originalPayload.Occupation,
+  "maritalStatus": vars.originalPayload.MaritalStatus,
+  "emergencyContactDetails": vars.originalPayload.EmergencyContactDetails,
+  "status": vars.originalPayload.Status,
+  "medicalHistory": vars.originalPayload.MedicalHistory,
+  "timestamp": now() as String {format: "yyyy-MM-dd HH:mm:ss"}
+
+	
+}]]]></db:input-parameters>
+				</db:insert>
+				<ee:transform doc:name="Mapping and converting into CSV format." doc:id="09873ce9-7461-4428-9904-83c4b73fde3a">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+{
+		
+  "Name": vars.originalPayload.Name,
+  "ID": vars.originalPayload.ID,
+  "Gender": vars.originalPayload.Gender,
+  "BOD": vars.originalPayload.BOD,
+  "MobileNumber": vars.originalPayload.MobileNumber,
+  "Address_City": vars.originalPayload.Address_City,
+  "Address_State": vars.originalPayload.Address_State,
+  "Address_ZipCode": vars.originalPayload.Address_ZipCode,
+  "EmailID": vars.originalPayload.EmailID,
+  "Occupation": vars.originalPayload.Occupation,
+  "MaritalStatus": vars.originalPayload.MaritalStatus,
+  "EmergencyContactDetails": vars.originalPayload.EmergencyContactDetails,
+  "Status": vars.originalPayload.Status,
+  "MedicalHistory": vars.originalPayload.MedicalHistory,
+  "Timestamp":  now() as String {format: "yyyy-MM-dd HH:mm:ss"}
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<file:write doc:name="Writing new records in CSV File." doc:id="cba5f018-a496-45b1-b9b7-97d2a8de8332" config-ref="File_Config" path="${file.patinsert}" />
+				<ee:transform doc:name="Printing a message as record Inserted successfully." doc:id="fcf91232-fad3-4ebe-acbe-9fded0454fbd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message": "Record Inserted Successfully"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="End Logger" doc:id="fa64aa15-4330-420f-a6d5-7fb4637fee82" message='#["Validating  Patient details  Object flow ended in system layer impl ::" ++ vars.correlationid]'/>
+	
+</sub-flow>
+	<sub-flow name="Validate-Doctor-Insert-or-Update-Accordingly" doc:id="d534241c-c02c-40e2-be15-eca96315b88a" >  <logger level="INFO" doc:name="Start Logger" doc:id="2b044fbc-ff84-4765-8fa4-1920300db4ee" message='#["Validating  Doctor details  Object  started in system layer impl flow ::" ++ vars.correlationid]'/>
+		<ee:transform doc:name="Taking the payload and converting into json format and creating variables and storing them." doc:id="04a9f6a3-9a08-42e4-9137-7e920932af5e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="originalPayload"><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="id"><![CDATA[payload.StaffID]]></ee:set-variable>
+				<ee:set-variable variableName="name"><![CDATA[payload.Name]]></ee:set-variable>
+				<ee:set-variable variableName="cid" ><![CDATA[attributes.headers.correlationid]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<db:select doc:name="Retrieving Doctor Record based on  StaffID and Name." doc:id="cf2e8694-718c-4487-949b-1e28439e5efd" config-ref="Database_Config">
+			<db:sql><![CDATA[SELECT * FROM DOCTOR WHERE staffID =:staffID and Name =:Name;]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	"staffID" : vars.id,
+	 "Name" : vars.name
+   
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Checking wheather the payload exists with given ID and if so performing given operations." doc:id="8b700c19-1cc6-49b7-9ce9-bd1888ecfc86">
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<db:update doc:name="Updating in the Database" doc:id="9278f2d1-0ba6-49fd-8126-177768cd0c93" config-ref="Database_Config">
+					<db:sql><![CDATA[UPDATE DOCTOR
+SET 
+    Name = :Name,
+    Gender = :Gender,
+    EmailID = :EmailID,
+    SpecialistIN = :SpecialistIN,
+    AcceptingCases = :AcceptingCases,
+    Surgeon = :Surgeon,
+    OfficeHours = :OfficeHours,
+    Timestamp = CURRENT_TIMESTAMP
+WHERE
+    staffID = :staffID;
+]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+	"Name" : vars.originalPayload.Name, 
+	"Gender":vars.originalPayload.Gender, 
+	"EmailID" : vars.originalPayload.EmailID, 
+	"SpecialistIN" : vars.originalPayload.Specialty, 
+	"AcceptingCases" : vars.originalPayload.AcceptingCases, 
+	"Surgeon" : vars.originalPayload.Surgeon, 
+	"OfficeHours" : vars.originalPayload.OfficeHours, 
+	"staffID" :vars.originalPayload.StaffID
+	
+}]]]></db:input-parameters>
+				</db:update>
+				<ee:transform doc:name="Mapping and converting into CSV format." doc:id="f292460e-3677-4824-8bda-9ab59aff0ff0">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+{
+	"Name" : vars.originalPayload.Name, 
+	"Gender":vars.originalPayload.Gender, 
+	"EmailID" : vars.originalPayload.EmailID, 
+	"SpecialistIN" : vars.originalPayload.SpecialistIN, 
+	"AcceptingCases" : vars.originalPayload.AcceptingCases, 
+	"Surgeon" : vars.originalPayload.Surgeon, 
+	"OfficeHours" : vars.originalPayload.OfficeHours, 
+	"staffID" :vars.originalPayload.staffID,
+	"Timestamp": now() as String {format: "yyyy-MM-dd HH:mm:ss"}
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<file:write doc:name="Writing Updated records in CSV File." doc:id="32d9bcce-0e5f-4c20-b872-c39bf850d1d7" config-ref="File_Config" mode="APPEND" path="${file.docupdate}"/>
+			</when>
+			<otherwise>
+				<db:insert doc:name="Inserting Record into Database" doc:id="a9018249-fa23-433b-a44d-99da81fde16e" config-ref="Database_Config">
+					<db:sql><![CDATA[INSERT INTO DOCTOR (
+    staffID,
+    Name,
+    Gender,
+    EmailID,
+    SpecialistIN,
+    AcceptingCases,
+    Surgeon,
+    OfficeHours,
+    Timestamp
+)
+VALUES (
+    :staffID,
+    :Name,
+    :Gender,
+    :EmailID,
+    :SpecialistIN,
+    :AcceptingCases,
+    :Surgeon,
+    :OfficeHours,
+    CURRENT_TIMESTAMP
+);
+]]></db:sql>
+					<db:input-parameters><![CDATA[#[{
+	"Name" : vars.originalPayload.Name, 
+	"Gender":vars.originalPayload.Gender, 
+	"EmailID" : vars.originalPayload.EmailID, 
+	"SpecialistIN" : vars.originalPayload.Specialty, 
+	"AcceptingCases" : vars.originalPayload.AcceptingCases, 
+	"Surgeon" : vars.originalPayload.Surgeon, 
+	"OfficeHours" : vars.originalPayload.OfficeHours, 
+	"staffID" :vars.originalPayload.StaffID
+
+}]]]></db:input-parameters>
+				</db:insert>
+				<ee:transform doc:name="Mapping and converting into CSV format." doc:id="ecf3f21d-ee38-4bf6-934e-a63d6b421a5f">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+{
+	"Name" : vars.originalPayload.Name, 
+	"Gender":vars.originalPayload.Gender, 
+	"EmailID" : vars.originalPayload.EmailID, 
+	"SpecialistIN" : vars.originalPayload.SpecialistIN, 
+	"AcceptingCases" : vars.originalPayload.AcceptingCases, 
+	"Surgeon" : vars.originalPayload.Surgeon, 
+	"OfficeHours" : vars.originalPayload.OfficeHours, 
+	"staffID" :vars.originalPayload.staffID,
+	"Timestamp": now() as String {format: "yyyy-MM-dd HH:mm:ss"}
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<file:write doc:name="Writing inserted record in a CSV File." doc:id="7b9ea124-7bf3-4f6c-aa4f-37bb1e8b11a6" config-ref="File_Config" path="${file.docinsert}" mode="APPEND" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="End Logger" doc:id="63105512-9ce0-4b0a-a3bd-3e14d4231914" message='#["Validating  Doctor details  Object flow ended in system layer impl ::" ++ vars.correlationid]'/>
+	</sub-flow>
+</mule>

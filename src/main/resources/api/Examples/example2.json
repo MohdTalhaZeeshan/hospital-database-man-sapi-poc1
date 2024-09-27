@@ -1,0 +1,16 @@
+{
+                "Name": "John Doe",
+               "ID": 123,
+                "Gender": "Male",
+                "BOD": "1990-01-01",
+                "MobileNumber": 1234567890,
+                "Address_City": "New York",
+                "Address_State": "NY",
+                "Address_ZipCode": "10001",
+                "EmailID": "john.doe@example.com",
+                "MaritalStatus": "Single",
+                "EmergencyContactDetails": 9876543210,
+                "Status": "Visited",
+                "MedicalHistory": "No significant medical history",
+                "Timestamp": "2024-09-17T10:10:00Z"
+  }

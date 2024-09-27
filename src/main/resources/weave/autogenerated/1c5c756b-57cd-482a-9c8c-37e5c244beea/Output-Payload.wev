@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_1c5c756b_57cd_482a_9c8c_37e5c244beea_Output_Payload = Array<{  Specialty: String,   OfficeHours: String,   EmailID: String,   StaffID: Number,   Timestamp: String,   Name: String,   _?: Any} {"description": "Doctor details in the hospital system"}>
+

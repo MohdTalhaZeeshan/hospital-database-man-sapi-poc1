@@ -1,0 +1,20 @@
+%dw 2.0
+
+type auto_57ac6ea2_b53c_482a_8013_5468a18ee2ae_Input_Payload = {
+  Status: "Visited" | "NotVisited", 
+  EmailID: String, 
+  Address_City: String, 
+  MedicalHistory: String, 
+  Gender: "Male" | "Female" | "Other", 
+  Address_State: String, 
+  Timestamp: String, 
+  Name: String, 
+  MaritalStatus: "Married" | "Single" | "Divorced" | "Widowed", 
+  MobileNumber: Number, 
+  Address_ZipCode: String, 
+  EmergencyContactDetails: Number, 
+  BOD: String, 
+  ID: Number, 
+  _?: Any
+} {"description": "Patient details in the hospital System"}
+

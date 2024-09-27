@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_b864ddd9_f146_4841_bb4d_94360de8902b_Output_Payload = Array<{  Status: "Visited" | "NotVisited",   EmailID: String,   Address_City: String,   MedicalHistory: String,   Gender: "Male" | "Female" | "Other",   Address_State: String,   Timestamp: String,   Name: String,   MaritalStatus: "Married" | "Single" | "Divorced" | "Widowed",   MobileNumber: Number,   Address_ZipCode: String,   EmergencyContactDetails: Number,   BOD: String,   ID: Number,   _?: Any} {"description": "Patient details in the hospital System"}>
+

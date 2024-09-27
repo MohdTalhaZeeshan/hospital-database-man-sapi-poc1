@@ -1,0 +1,50 @@
+#%RAML 1.0 DataType
+type: object
+description: Patient details in the hospital System
+properties:
+  Name: 
+    type: string
+    example: "Ramesh Kumar"
+  ID: 
+    type: integer
+    example: 123
+  Gender: 
+    type: string
+    enum: [Male, Female, Other]
+    example: "Male"
+  BOD: 
+    type: string
+    example: "1990-01-01"
+  MobileNumber: 
+    type: integer
+    example: 1234567890
+  Address_City: 
+    type: string
+    example: "Hyderabad"
+  Address_State: 
+    type: string
+    example: "Telangana"
+  Address_ZipCode: 
+    type: string
+    example: "10001"
+  EmailID: 
+    type: string
+    example: "Ramesh@gmail.com"
+  MaritalStatus: 
+    type: string
+    enum: [Married, Single, Divorced, Widowed]
+    example: "Single"
+  EmergencyContactDetails: 
+    type: integer
+    example: 9876543210
+  Status: 
+    type: string
+    enum: [Visited, NotVisited]
+    example: "Visited"
+  MedicalHistory: 
+    type: string
+    example: "No significant medical history"
+  Timestamp: 
+    type: datetime
+    example: "2024-09-17T14:45:00Z"
+    
